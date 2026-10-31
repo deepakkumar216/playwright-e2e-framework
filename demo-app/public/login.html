@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tasks - Sign in</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header><h1>Tasks</h1></header>
+  <main>
+    <form class="card" data-test="login-form">
+      <h2>Sign in</h2>
+      <label for="username">Username</label>
+      <input id="username" type="text" data-test="username" autocomplete="username">
+      <label for="password">Password</label>
+      <input id="password" type="password" data-test="password" autocomplete="current-password">
+      <p class="error" data-test="login-error" role="alert"></p>
+      <button type="submit" data-test="login-button">Sign in</button>
+    </form>
+  </main>
+  <script>
+    document.querySelector('form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const error = document.querySelector('[data-test="login-error"]');
+      error.textContent = '';
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: document.getElementById('username').value,
+          password: document.getElementById('password').value,
+        }),
+      });
+      const body = await res.json();
+      if (!res.ok) {
+        error.textContent = body.error;
+        return;
+      }
+      localStorage.setItem('token', body.token);
+      localStorage.setItem('username', body.username);
+      location.href = '/';
+    });
+  </script>
+</body>
+</html>

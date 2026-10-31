@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tasks</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header>
+    <h1>My Tasks</h1>
+    <div>
+      <span data-test="current-user"></span>
+      <button class="secondary" data-test="logout">Log out</button>
+    </div>
+  </header>
+  <main>
+    <section class="card">
+      <form class="add" data-test="add-form">
+        <input type="text" data-test="new-task" placeholder="What needs doing?" aria-label="New task" maxlength="200">
+        <button type="submit" data-test="add-task">Add</button>
+      </form>
+      <p class="error" data-test="task-error" role="alert"></p>
+      <ul data-test="task-list"></ul>
+      <p class="empty" data-test="empty-state" hidden>No tasks yet</p>
+      <p class="counter" data-test="remaining-count"></p>
+    </section>
+  </main>
+  <script>
+    const token = localStorage.getItem('token');
+    if (!token) location.replace('/login');
+
+    const api = async (path, options = {}) => {
+      const res = await fetch(path, {
+        ...options,
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      });
+      if (res.status === 401) {
+        localStorage.clear();
+        location.replace('/login');
+      }
+      return res;
+    };
+
+    const list = document.querySelector('[data-test="task-list"]');
+    const empty = document.querySelector('[data-test="empty-state"]');
+    const counter = document.querySelector('[data-test="remaining-count"]');
+    const error = document.querySelector('[data-test="task-error"]');
+    document.querySelector('[data-test="current-user"]').textContent = localStorage.getItem('username') || '';
+
+    function render(tasks) {
+      list.innerHTML = '';
+      for (const t of tasks) {
+        const li = document.createElement('li');
+        li.dataset.test = 'task-item';
+        li.dataset.id = t.id;
+        if (t.done) li.classList.add('done');
+
+        const box = document.createElement('input');
+        box.type = 'checkbox';
+        box.checked = t.done;
+        box.dataset.test = 'task-toggle';
+        box.setAttribute('aria-label', `Mark "${t.title}" as done`);
+        box.addEventListener('change', async () => {
+          await api(`/api/tasks/${t.id}`, { method: 'PATCH', body: JSON.stringify({ done: box.checked }) });
+          load();
+        });
+
+        const title = document.createElement('span');
+        title.className = 'title';
+        title.dataset.test = 'task-title';
+        title.textContent = t.title;
+
+        const del = document.createElement('button');
+        del.className = 'danger';
+        del.dataset.test = 'task-delete';
+        del.textContent = 'Delete';
+        del.setAttribute('aria-label', `Delete "${t.title}"`);
+        del.addEventListener('click', async () => {
+          await api(`/api/tasks/${t.id}`, { method: 'DELETE' });
+          load();
+        });
+
+        li.append(box, title, del);
+        list.append(li);
+      }
+      empty.hidden = tasks.length > 0;
+      const remaining = tasks.filter((t) => !t.done).length;
+      counter.textContent = tasks.length ? `${remaining} of ${tasks.length} remaining` : '';
+    }
+
+    async function load() {
+      const res = await api('/api/tasks');
+      if (res.ok) render(await res.json());
+    }
+
+    document.querySelector('[data-test="add-form"]').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const input = document.querySelector('[data-test="new-task"]');
+      error.textContent = '';
+      const res = await api('/api/tasks', { method: 'POST', body: JSON.stringify({ title: input.value }) });
+      if (!res.ok) {
+        error.textContent = (await res.json()).error;
+        return;
+      }
+      input.value = '';
+      load();
+    });
+
+    document.querySelector('[data-test="logout"]').addEventListener('click', () => {
+      localStorage.clear();
+      location.href = '/login';
+    });
+
+    load();
+  </script>
+</body>
+</html>
