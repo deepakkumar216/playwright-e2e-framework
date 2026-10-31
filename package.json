@@ -1,0 +1,31 @@
+{
+  "name": "playwright-e2e-framework",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Playwright + TypeScript end-to-end framework: Page Objects, fixtures, API-seeded UI tests, visual regression and sharded CI",
+  "scripts": {
+    "app": "node demo-app/server.js",
+    "test": "playwright test",
+    "test:smoke": "playwright test --grep @smoke",
+    "test:saucedemo": "playwright test --project=saucedemo",
+    "test:tasks": "playwright test --project=tasks-app",
+    "test:visual": "playwright test --grep @visual",
+    "test:visual:update": "playwright test --grep @visual --update-snapshots",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "report": "playwright show-report",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": ["playwright", "typescript", "e2e", "test-automation"],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "@faker-js/faker": "9.2.0",
+    "@playwright/test": "1.48.2",
+    "@types/node": "20.17.6",
+    "dotenv": "16.4.5",
+    "typescript": "5.6.3"
+  }
+}

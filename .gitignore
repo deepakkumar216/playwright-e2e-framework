@@ -1,0 +1,18 @@
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/all-blob-reports/
+/playwright/.cache/
+.auth/
+.env
+
+# Only the Linux visual baselines are committed (CI renders on Linux).
+# Local Windows/macOS baselines are created on your first local run.
+tests/__screenshots__/**/*-win32.png
+tests/__screenshots__/**/*-darwin.png
+
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
